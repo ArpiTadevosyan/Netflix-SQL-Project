@@ -93,4 +93,50 @@ FROM actor_genre_count
 WHERE actor_rank <= 3
 ORDER BY genre_name, actor_rank;
 
+--11. Most frequent actor duos
+SELECT 
+    a.actor_name AS Actor_1, 
+    b.actor_name AS Actor_2, 
+    COUNT(*) AS movies_together
+FROM netflix_cast a
+JOIN netflix_cast b ON a.show_id = b.show_id AND a.actor_name < b.actor_name
+GROUP BY a.actor_name, b.actor_name
+HAVING COUNT(*) > 1
+ORDER BY movies_together DESC;
+
+--12. Duration of movies
+WITH movie_durations AS (
+    SELECT 
+        show_id,
+        title,
+        release_year,
+        CAST(REPLACE(duration, ' min', '') AS INT) AS duration_minutes
+    FROM netflix_titles
+    WHERE type = 'Movie' AND duration LIKE '%min%'
+)
+SELECT
+    CASE
+        WHEN duration_minutes < 60 THEN 'Short (< 1 hour)'
+        WHEN duration_minutes BETWEEN 60 AND 120 THEN 'Medium (1 - 2 hours)'
+        ELSE 'Long ( > 2 hours)'
+    END AS duration_category,
+    COUNT(*) AS Total_Movies,
+    MIN(duration_minutes) AS Min_Minutes,
+    MAX(duration_minutes) AS Max_Minutes,
+    AVG(duration_minutes) AS Avg_Minutes
+FROM movie_durations
+GROUP BY
+    CASE
+        WHEN duration_minutes < 60 THEN 'Short (< 1 hour)'
+        WHEN duration_minutes BETWEEN 60 AND 120 THEN 'Medium (1 - 2 hours)'
+        ELSE 'Long ( > 2 hours)'
+    END
+ORDER BY Total_Movies DESC;
+
+--Indexes
+CREATE INDEX idx_netflix_cast_show_id ON netflix_cast(show_id);
+CREATE INDEX idx_netflix_genres_show_id ON netflix_genres(show_id);
+
+
+
 
