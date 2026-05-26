@@ -79,7 +79,7 @@ WITH actor_genre_count AS (
         g.genre_name,
         c.actor_name,
         COUNT(*) AS movie_count,
-        DENSE_RANK() OVER (PARTITION BY g.genre_name ORDER BY COUNT(*) DESC) AS actor_rank
+        ROW_NUMBER() OVER (PARTITION BY g.genre_name ORDER BY COUNT(*) DESC) AS actor_rank
     FROM netflix_titles t
     JOIN netflix_cast c ON t.show_id = c.show_id
     JOIN netflix_genres g ON t.show_id = g.show_id
@@ -92,6 +92,7 @@ SELECT
 FROM actor_genre_count
 WHERE actor_rank <= 3
 ORDER BY genre_name, actor_rank;
+
 
 --11. Most frequent actor duos
 SELECT 
